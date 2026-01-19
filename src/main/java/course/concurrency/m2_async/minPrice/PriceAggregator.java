@@ -36,13 +36,11 @@ public class PriceAggregator {
                 Math.min(shopIds.size(), 100)
         );
 
-        ExecutorService executor2 = ForkJoinPool.commonPool();
-
         // Создаем futures для всех магазинов
         List<CompletableFuture<Double>> futures = shopIds.stream()
                 .map(shopId -> CompletableFuture.supplyAsync(() ->
                         priceRetriever.getPrice(itemId, shopId)
-                ))
+                ,executor))
                 .collect(Collectors.toList());
 
         // Объединяем все futures
