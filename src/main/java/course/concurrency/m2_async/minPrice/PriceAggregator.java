@@ -1,20 +1,14 @@
 package course.concurrency.m2_async.minPrice;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
 
 public class PriceAggregator {
 
@@ -31,25 +25,29 @@ public class PriceAggregator {
     }
 
     public double getMinPrice(long itemId) {
-        // Создаем Executor
-        ExecutorService executor = Executors.newFixedThreadPool(
-                Math.min(shopIds.size(), 100)
-        );
+        // Executor для экспериментов
+        ExecutorService executor = Executors.newFixedThreadPool(Math.min(shopIds.size(), 100));
 
         // Создаем futures для всех магазинов
         List<CompletableFuture<Double>> futures = shopIds.stream()
                 .map(shopId -> CompletableFuture.supplyAsync(() ->
-                        priceRetriever.getPrice(itemId, shopId)
-                ,executor))
-                .collect(Collectors.toList());
+                                priceRetriever.getPrice(itemId, shopId)
+                        , executor))
+                .toList();
 
         // Объединяем все futures
-        CompletableFuture<Void> allFutures = CompletableFuture.allOf(
-                futures.toArray(new CompletableFuture[0])
-        );
+        CompletableFuture<Void> allFutures = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
 
         // Создаем future с таймаутом
         CompletableFuture<List<Double>> resultsFuture = allFutures
+                .handle((result, ex) -> {
+                    if (ex != null) {
+                        System.out.println("Ошибка: " + ex.getMessage());
+                        return 0;
+                    } else {
+                        return result;
+                    }
+                })
                 .thenApply(v -> futures.stream()
                         .map(f -> {
                             try {
@@ -59,11 +57,12 @@ public class PriceAggregator {
                             }
                         })
                         .filter(Objects::nonNull) // Фильтруем null
-                        .collect(Collectors.toList())
+                        .toList()
                 );
 
         try {
-            // Ждем максимум 3 секунды
+            // Ждем максимум 2.5 секунды. Т.к. Пункт 2
+
             List<Double> results = resultsFuture.get(2500, TimeUnit.MILLISECONDS);
 
             return results.isEmpty() ? Double.NaN :
@@ -82,7 +81,7 @@ public class PriceAggregator {
                         }
                     })
                     .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
+                    .toList();
 
             return results.isEmpty() ? Double.NaN :
                     results.stream().min(Double::compareTo).get();
