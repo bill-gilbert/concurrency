@@ -1,6 +1,5 @@
 package course.concurrency.m2_async.min_price;
 
-import course.concurrency.m2_async.minPrice.PriceAggregator;
 import course.concurrency.m2_async.minPrice.PriceAggregatorMyImpl;
 import course.concurrency.m2_async.minPrice.PriceRetriever;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,9 +24,9 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class PriceAggregatorTests {
+public class PriceAggregatorMyImplTests {
 
-    PriceAggregator priceAggregator;
+    PriceAggregatorMyImpl priceAggregatorMyImpl;
 
     long randomItemId;
 
@@ -35,7 +34,7 @@ public class PriceAggregatorTests {
 
     @BeforeEach
     public void setup() {
-        priceAggregator = new PriceAggregator();
+        priceAggregatorMyImpl = new PriceAggregatorMyImpl();
         randomItemId = ThreadLocalRandom.current().nextLong();
     }
 
@@ -49,13 +48,13 @@ public class PriceAggregatorTests {
                 .collect(toList());
         when(priceRetriever.getPrice(anyLong(), anyLong())).thenReturn(ThreadLocalRandom.current().nextDouble()*100,
                 prices.toArray(new Double[]{}));
-        priceAggregator.setPriceRetriever(priceRetriever);
+        priceAggregatorMyImpl.setPriceRetriever(priceRetriever);
         Set<Long> shops = LongStream.range(0, shopCount).boxed().collect(toSet());
-        priceAggregator.setShops(shops);
+        priceAggregatorMyImpl.setShops(shops);
         double expectedMin = prices.stream().min(Double::compareTo).get();
 
         long start = System.currentTimeMillis();
-        double min = priceAggregator.getMinPrice(randomItemId);
+        double min = priceAggregatorMyImpl.getMinPrice(randomItemId);
         long end = System.currentTimeMillis();
 
         assertEquals(expectedMin, min, "Minimal price is evaluated incorrectly");
@@ -70,11 +69,11 @@ public class PriceAggregatorTests {
             Thread.sleep(3000);
             return 12d;
         });
-        priceAggregator.setPriceRetriever(priceRetriever);
+        priceAggregatorMyImpl.setPriceRetriever(priceRetriever);
         double expectedMin = Double.NaN;
 
         long start = System.currentTimeMillis();
-        double min = priceAggregator.getMinPrice(15L);
+        double min = priceAggregatorMyImpl.getMinPrice(15L);
         long end = System.currentTimeMillis();
 
         assertEquals(expectedMin, min, "Minimal price is evaluated incorrectly");
@@ -102,12 +101,12 @@ public class PriceAggregatorTests {
             }
         });
 
-        priceAggregator.setPriceRetriever(priceRetriever);
+        priceAggregatorMyImpl.setPriceRetriever(priceRetriever);
         Set<Long> shops = LongStream.range(0, shopCount).boxed().collect(toSet());
-        priceAggregator.setShops(shops);
+        priceAggregatorMyImpl.setShops(shops);
 
         long start = System.currentTimeMillis();
-        double min = priceAggregator.getMinPrice(randomItemId);
+        double min = priceAggregatorMyImpl.getMinPrice(randomItemId);
         long end = System.currentTimeMillis();
 
         double expectedMin = prices.stream().min(Double::compareTo).orElse(Double.NaN);
@@ -141,13 +140,13 @@ public class PriceAggregatorTests {
             }
         });
 
-        priceAggregator.setPriceRetriever(priceRetriever);
+        priceAggregatorMyImpl.setPriceRetriever(priceRetriever);
         Set<Long> shops = LongStream.range(0, shopCount).boxed().collect(toSet());
-        priceAggregator.setShops(shops);
+        priceAggregatorMyImpl.setShops(shops);
 
 
         long start = System.currentTimeMillis();
-        double min = priceAggregator.getMinPrice(randomItemId);
+        double min = priceAggregatorMyImpl.getMinPrice(randomItemId);
         long end = System.currentTimeMillis();
 
         double expectedMin = usedPrices.stream().min(Double::compareTo).orElse(Double.NaN);
@@ -179,13 +178,13 @@ public class PriceAggregatorTests {
             }
         });
 
-        priceAggregator.setPriceRetriever(priceRetriever);
+        priceAggregatorMyImpl.setPriceRetriever(priceRetriever);
         Set<Long> shops = LongStream.range(0, shopCount).boxed().collect(toSet());
-        priceAggregator.setShops(shops);
+        priceAggregatorMyImpl.setShops(shops);
         double expectedMin = prices.stream().filter(Objects::nonNull).min(Double::compareTo).get();
 
         long start = System.currentTimeMillis();
-        double min = priceAggregator.getMinPrice(randomItemId);
+        double min = priceAggregatorMyImpl.getMinPrice(randomItemId);
         long end = System.currentTimeMillis();
 
         assertEquals(expectedMin, min, "Minimal price is evaluated incorrectly");
@@ -199,7 +198,7 @@ public class PriceAggregatorTests {
         double expectedMinPrice = 10d;
 
         List<Long> shopIds = LongStream.range(0, shopCount-1).boxed().collect(toList());
-        priceAggregator.setShops(shopIds);
+        priceAggregatorMyImpl.setShops(shopIds);
 
         List<Double> prices = shopIds.stream().map(id -> 300+Double.valueOf(id)).collect(toList());
         prices.add(shopCount-1, expectedMinPrice);
@@ -211,12 +210,12 @@ public class PriceAggregatorTests {
             Thread.sleep(2500);
             return prices.get(iteration);
         });
-        priceAggregator.setPriceRetriever(priceRetriever);
+        priceAggregatorMyImpl.setPriceRetriever(priceRetriever);
         Set<Long> shops = LongStream.range(0, shopCount).boxed().collect(toSet());
-        priceAggregator.setShops(shops);
+        priceAggregatorMyImpl.setShops(shops);
 
         long start = System.currentTimeMillis();
-        double min = priceAggregator.getMinPrice(randomItemId);
+        double min = priceAggregatorMyImpl.getMinPrice(randomItemId);
         long end = System.currentTimeMillis();
 
         assertEquals(expectedMinPrice, min, "Minimal price is evaluated incorrectly");
